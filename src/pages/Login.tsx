@@ -83,8 +83,9 @@ export function Login() {
           <p className="mt-2 text-center text-sm text-gray-600">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
+             type="button"
               onClick={handleToggleMode}
-              className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200 hover:underline"
+             className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200 hover:underline relative z-10 cursor-pointer"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>
