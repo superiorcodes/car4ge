@@ -71,11 +71,13 @@ export function Maintenance() {
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <ul className="divide-y divide-gray-200">
           {records.map((record) => (
-            <li key={record.id} className="p-4 hover:bg-gray-50 cursor-pointer">
+            <li key={record.id} className="p-4 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 cursor-pointer transition-all duration-200 transform hover:scale-[1.01] rounded-lg mx-2 my-1 hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <Wrench className="h-6 w-6 text-gray-400" />
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <Wrench className="h-6 w-6 text-indigo-600" />
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{record.description}</p>
@@ -96,6 +98,10 @@ export function Maintenance() {
                         : 'bg-red-100 text-red-800'
                     }`}
                   >
+                    {record.status === 'completed' && '✅ '}
+                    {record.status === 'in_progress' && '🔧 '}
+                    {record.status === 'pending' && '⏳ '}
+                    {record.status === 'cancelled' && '❌ '}
                     {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                   </span>
                 </div>
@@ -103,16 +109,16 @@ export function Maintenance() {
               <div className="mt-2 sm:flex sm:justify-between">
                 <div className="sm:flex sm:space-x-6">
                   <p className="flex items-center text-sm text-gray-500">
-                    <Calendar className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                    <Calendar className="flex-shrink-0 mr-1.5 h-4 w-4 text-indigo-500" />
                     {new Date(record.service_date).toLocaleDateString()}
                   </p>
                   <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                    <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-green-500" />
                     {record.garages.name}
                   </p>
                 </div>
-                <div className="mt-2 flex items-center text-sm font-medium text-indigo-600 sm:mt-0">
-                  ${record.cost.toFixed(2)}
+                <div className="mt-2 flex items-center text-base font-bold text-indigo-600 sm:mt-0">
+                  💰 ${record.cost.toFixed(2)}
                 </div>
               </div>
             </li>

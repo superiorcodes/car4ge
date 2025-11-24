@@ -89,11 +89,13 @@ export function Vehicles() {
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {filteredVehicles.map((vehicle) => (
-            <li key={vehicle.id}>
-              <div className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer">
+            <li key={vehicle.id} className="transform transition-all duration-200 hover:scale-[1.02]">
+              <div className="px-4 py-4 sm:px-6 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 cursor-pointer transition-all duration-200 hover:shadow-md rounded-lg mx-2 my-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Car className="h-6 w-6 text-gray-400 mr-3" />
+                    <div className="p-2 bg-indigo-100 rounded-lg mr-3 group-hover:bg-indigo-200 transition-colors duration-200">
+                      <Car className="h-6 w-6 text-indigo-600" />
+                    </div>
                     <div>
                       <p className="text-sm font-medium text-indigo-600 truncate">
                         {vehicle.make} {vehicle.model} ({vehicle.year})
@@ -105,7 +107,7 @@ export function Vehicles() {
                   </div>
                   <div className="ml-2 flex-shrink-0 flex">
                     <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      Active
+                      ✨ Active
                     </p>
                   </div>
                 </div>

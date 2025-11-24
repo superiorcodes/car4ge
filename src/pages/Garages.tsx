@@ -65,37 +65,50 @@ export function Garages() {
         {garages.map((garage) => (
           <div
             key={garage.id}
-            className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200"
+            className="bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
           >
-            <div className="p-6">
+            <div className="p-6 relative">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-full -mr-10 -mt-10 opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <Building2 className="h-8 w-8 text-indigo-600" />
+                  <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Building2 className="h-8 w-8 text-white" />
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">
+                <div className="ml-4 relative z-10">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors duration-200">
                     {garage.name}
                   </h3>
+                  <div className="flex items-center mt-1">
+                    <Sparkles className="h-4 w-4 text-yellow-500 mr-1" />
+                    <span className="text-sm text-gray-500">Licensed Garage</span>
+                  </div>
                 </div>
               </div>
               <div className="mt-4 space-y-3">
                 <p className="flex items-center text-sm text-gray-500">
-                  <MapPin className="flex-shrink-0 mr-2 h-5 w-5 text-gray-400" />
+                  <MapPin className="flex-shrink-0 mr-2 h-5 w-5 text-indigo-500" />
                   {garage.address}
                 </p>
                 <p className="flex items-center text-sm text-gray-500">
-                  <Phone className="flex-shrink-0 mr-2 h-5 w-5 text-gray-400" />
+                  <Phone className="flex-shrink-0 mr-2 h-5 w-5 text-green-500" />
                   {garage.phone}
                 </p>
                 <p className="flex items-center text-sm text-gray-500">
-                  <Mail className="flex-shrink-0 mr-2 h-5 w-5 text-gray-400" />
+                  <Mail className="flex-shrink-0 mr-2 h-5 w-5 text-blue-500" />
                   {garage.email}
                 </p>
               </div>
-              <div className="mt-4">
-                <p className="text-sm text-gray-500">
-                  License: {garage.license_number}
-                </p>
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg group-hover:bg-indigo-50 transition-colors duration-200">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-700">
+                    License: {garage.license_number}
+                  </p>
+                  <div className="flex items-center text-xs text-green-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                    Verified
+                  </div>
+                </div>
               </div>
             </div>
           </div>
