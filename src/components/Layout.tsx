@@ -8,7 +8,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 
 export function Layout() {
@@ -46,8 +47,10 @@ export function Layout() {
         lg:translate-x-0 transition-transform duration-200 ease-in-out
       `}>
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-center h-16 px-4 bg-indigo-600">
-            <h1 className="text-xl font-bold text-white">Garage Manager</h1>
+          <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 animate-pulse"></div>
+            <Sparkles className="h-6 w-6 text-yellow-300 mr-2 animate-bounce" />
+            <h1 className="text-xl font-bold text-white relative z-10">Garage Manager</h1>
           </div>
 
           <nav className="flex-1 px-4 py-4 space-y-1">
@@ -59,13 +62,13 @@ export function Layout() {
                   key={item.name}
                   to={item.href}
                   className={`
-                    flex items-center px-4 py-2 text-sm font-medium rounded-md
+                    flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 transform hover:scale-105 hover:shadow-md
                     ${isActive 
-                      ? 'bg-indigo-50 text-indigo-600' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}
+                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 shadow-sm border-l-4 border-indigo-500' 
+                      : 'text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 hover:text-gray-900'}
                   `}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
+                  <Icon className={`mr-3 h-5 w-5 transition-transform duration-200 ${isActive ? 'animate-pulse' : 'group-hover:scale-110'}`} />
                   {item.name}
                 </Link>
               );
@@ -75,7 +78,7 @@ export function Layout() {
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={signOut}
-              className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+              className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-red-50 hover:text-red-700 transition-all duration-200 transform hover:scale-105"
             >
               <LogOut className="mr-3 h-5 w-5" />
               Sign out
