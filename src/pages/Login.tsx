@@ -43,7 +43,16 @@ export function Login() {
         navigate(location.state?.from?.pathname || '/');
       }
     } catch (err) {
-      setError(isLogin ? 'Failed to sign in' : 'Failed to sign up');
+      // Provide more specific error messages based on the error
+      if (err?.message?.includes('Invalid login credentials')) {
+        setError(isLogin ? 'Invalid email or password. Please check your credentials.' : 'Failed to create account. Please try again.');
+      } else if (err?.message?.includes('Email not confirmed')) {
+        setError('Please check your email and confirm your account before signing in.');
+      } else if (err?.message?.includes('User already registered')) {
+        setError('An account with this email already exists. Please sign in instead.');
+      } else {
+        setError(err?.message || (isLogin ? 'Failed to sign in. Please try again.' : 'Failed to sign up. Please try again.'));
+      }
       console.error(err);
     } finally {
       setLoading(false);
