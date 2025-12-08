@@ -9,9 +9,10 @@ interface GarageFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onToast?: (type: 'success' | 'error', message: string) => void;
 }
 
-export function GarageForm({ isOpen, onClose, onSuccess }: GarageFormProps) {
+export function GarageForm({ isOpen, onClose, onSuccess, onToast }: GarageFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Garage>({
@@ -36,10 +37,20 @@ export function GarageForm({ isOpen, onClose, onSuccess }: GarageFormProps) {
 
       if (submitError) throw submitError;
 
+      onToast?.('success', 'Garage created successfully!');
       onSuccess();
       onClose();
+      setFormData({
+        name: '',
+        address: '',
+        phone: '',
+        email: '',
+        license_number: '',
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create garage');
+      const message = err instanceof Error ? err.message : 'Failed to create garage';
+      setError(message);
+      onToast?.('error', message);
     } finally {
       setLoading(false);
     }

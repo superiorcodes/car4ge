@@ -9,9 +9,10 @@ interface VehicleFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onToast?: (type: 'success' | 'error', message: string) => void;
 }
 
-export function VehicleForm({ isOpen, onClose, onSuccess }: VehicleFormProps) {
+export function VehicleForm({ isOpen, onClose, onSuccess, onToast }: VehicleFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Vehicle>({
@@ -39,10 +40,23 @@ export function VehicleForm({ isOpen, onClose, onSuccess }: VehicleFormProps) {
 
       if (submitError) throw submitError;
 
+      onToast?.('success', 'Vehicle added successfully!');
       onSuccess();
       onClose();
+      setFormData({
+        vin: '',
+        make: '',
+        model: '',
+        year: new Date().getFullYear(),
+        color: '',
+        engine_type: '',
+        transmission: '',
+        mileage: 0
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create vehicle');
+      const message = err instanceof Error ? err.message : 'Failed to create vehicle';
+      setError(message);
+      onToast?.('error', message);
     } finally {
       setLoading(false);
     }

@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, MapPin, Phone, Mail, Plus } from 'lucide-react';
+import { Building2, MapPin, Phone, Mail, Plus, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { GarageForm } from '../components/GarageForm';
 
 type Garage = Database['public']['Tables']['garages']['Row'];
 
+import { ToastContainer } from '../components/Toast';
+
+type Toast = { id: string; type: 'success' | 'error'; message: string };
+
 export function Garages() {
   const [garages, setGarages] = useState<Garage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (type: 'success' | 'error', message: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   const fetchGarages = async () => {
     try {
@@ -119,7 +133,9 @@ export function Garages() {
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSuccess={fetchGarages}
+        onToast={addToast}
       />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

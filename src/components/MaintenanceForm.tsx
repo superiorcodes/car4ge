@@ -13,9 +13,10 @@ interface MaintenanceFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onToast?: (type: 'success' | 'error', message: string) => void;
 }
 
-export function MaintenanceForm({ isOpen, onClose, onSuccess }: MaintenanceFormProps) {
+export function MaintenanceForm({ isOpen, onClose, onSuccess, onToast }: MaintenanceFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,10 +71,23 @@ export function MaintenanceForm({ isOpen, onClose, onSuccess }: MaintenanceFormP
 
       if (submitError) throw submitError;
 
+      onToast?.('success', 'Service record created successfully!');
       onSuccess();
       onClose();
+      setFormData({
+        vehicle_id: '',
+        garage_id: '',
+        technician_id: user?.id || '',
+        service_date: format(new Date(), 'yyyy-MM-dd'),
+        mileage: 0,
+        description: '',
+        cost: 0,
+        status: 'pending'
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create maintenance record');
+      const message = err instanceof Error ? err.message : 'Failed to create maintenance record';
+      setError(message);
+      onToast?.('error', message);
     } finally {
       setLoading(false);
     }

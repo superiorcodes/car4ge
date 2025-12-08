@@ -1,16 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Car, Wrench, AlertTriangle, CheckCircle, TrendingUp, Award, Clock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import type { Database } from '../lib/database.types';
+
+type MaintenanceRecord = Database['public']['Tables']['maintenance_records']['Row'] & {
+  vehicles: Database['public']['Tables']['vehicles']['Row'];
+  garages: Database['public']['Tables']['garages']['Row'];
+};
 
 export function Dashboard() {
   const { user } = useAuth();
+  const [vehicles, setVehicles] = useState(0);
+  const [garages, setGarages] = useState(0);
+  const [pendingServices, setPendingServices] = useState(0);
+  const [completedToday, setCompletedToday] = useState(0);
+  const [recentActivity, setRecentActivity] = useState<MaintenanceRecord[]>([]);
+  const [upcomingServices, setUpcomingServices] = useState<MaintenanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for demonstration
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        const [vehiclesRes, garagesRes, maintenanceRes] = await Promise.all([
+          supabase.from('vehicles').select('id'),
+          supabase.from('garages').select('id'),
+          supabase.from('maintenance_records').select(`
+            *,
+            vehicles (*),
+            garages (*)
+          `).order('service_date', { ascending: false }).limit(10)
+        ]);
+
+        if (vehiclesRes.error) throw vehiclesRes.error;
+        if (garagesRes.error) throw garagesRes.error;
+        if (maintenanceRes.error) throw maintenanceRes.error;
+
+        setVehicles(vehiclesRes.data?.length || 0);
+        setGarages(garagesRes.data?.length || 0);
+
+        const records = maintenanceRes.data || [];
+        const today = new Date().toDateString();
+        const todayCompleted = records.filter(r =>
+          new Date(r.created_at).toDateString() === today && r.status === 'completed'
+        ).length;
+        const pending = records.filter(r => r.status === 'pending').length;
+
+        setPendingServices(pending);
+        setCompletedToday(todayCompleted);
+        setRecentActivity(records.slice(0, 3));
+        setUpcomingServices(records.filter(r => r.status !== 'completed').slice(0, 3));
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboardData();
+  }, []);
+
   const stats = [
-    { name: 'Active Vehicles', value: '234', icon: Car },
-    { name: 'Pending Services', value: '12', icon: Wrench },
-    { name: 'Critical Issues', value: '3', icon: AlertTriangle },
-    { name: 'Completed Today', value: '8', icon: CheckCircle },
+    { name: 'Active Vehicles', value: vehicles.toString(), icon: Car },
+    { name: 'Pending Services', value: pendingServices.toString(), icon: Wrench },
+    { name: 'Garages', value: garages.toString(), icon: AlertTriangle },
+    { name: 'Completed Today', value: completedToday.toString(), icon: CheckCircle },
   ];
 
   return (
@@ -85,34 +139,50 @@ export function Dashboard() {
             </div>
           </div>
           <div className="p-6">
-            <div className="mt-6 flow-root">
-              <ul className="-my-5 divide-y divide-gray-200">
-                {[1, 2, 3].map((item) => (
-                  <li key={item} className="py-4 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200 cursor-pointer">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                        <div className="p-2 bg-green-100 rounded-full">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : recentActivity.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No recent activity</p>
+            ) : (
+              <div className="mt-6 flow-root">
+                <ul className="-my-5 divide-y divide-gray-200">
+                  {recentActivity.map((item) => (
+                    <li key={item.id} className="py-4 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200 cursor-pointer">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className={`p-2 rounded-full ${
+                            item.status === 'completed' ? 'bg-green-100' : 'bg-blue-100'
+                          }`}>
+                            <CheckCircle className={`h-5 w-5 ${
+                              item.status === 'completed' ? 'text-green-600' : 'text-blue-600'
+                            }`} />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {item.description}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {item.vehicles.make} {item.vehicles.model} • VIN: {item.vehicles.vin}
+                          </p>
+                        </div>
+                        <div>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {item.status === 'completed' ? '✨ Completed' : '⏳ Pending'}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          Oil Change Completed
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Toyota Camry • VIN: 1HGCM82633A123456
-                        </p>
-                      </div>
-                      <div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          ✨ Completed
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
@@ -127,34 +197,42 @@ export function Dashboard() {
             </div>
           </div>
           <div className="p-6">
-            <div className="mt-6 flow-root">
-              <ul className="-my-5 divide-y divide-gray-200">
-                {[1, 2, 3].map((item) => (
-                  <li key={item} className="py-4 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200 cursor-pointer">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                        <div className="p-2 bg-yellow-100 rounded-full">
-                          <Clock className="h-5 w-5 text-yellow-600" />
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : upcomingServices.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No upcoming services</p>
+            ) : (
+              <div className="mt-6 flow-root">
+                <ul className="-my-5 divide-y divide-gray-200">
+                  {upcomingServices.map((item) => (
+                    <li key={item.id} className="py-4 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200 cursor-pointer">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="p-2 bg-yellow-100 rounded-full">
+                            <Clock className="h-5 w-5 text-yellow-600" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {item.description}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {item.vehicles.make} {item.vehicles.model} • {new Date(item.service_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            📅 {item.status}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          Brake Inspection
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Honda Civic • Tomorrow at 10:00 AM
-                        </p>
-                      </div>
-                      <div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          📅 Scheduled
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

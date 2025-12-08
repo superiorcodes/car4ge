@@ -3,8 +3,10 @@ import { Car, Search, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { VehicleForm } from '../components/VehicleForm';
+import { ToastContainer } from '../components/Toast';
 
 type Vehicle = Database['public']['Tables']['vehicles']['Row'];
+type Toast = { id: string; type: 'success' | 'error'; message: string };
 
 export function Vehicles() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,6 +14,16 @@ export function Vehicles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (type: 'success' | 'error', message: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   const fetchVehicles = async () => {
     try {
@@ -132,7 +144,9 @@ export function Vehicles() {
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSuccess={fetchVehicles}
+        onToast={addToast}
       />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

@@ -3,17 +3,30 @@ import { Wrench, Calendar, Clock, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { MaintenanceForm } from '../components/MaintenanceForm';
+import { ToastContainer } from '../components/Toast';
 
 type MaintenanceRecord = Database['public']['Tables']['maintenance_records']['Row'] & {
   vehicles: Database['public']['Tables']['vehicles']['Row'];
   garages: Database['public']['Tables']['garages']['Row'];
 };
 
+type Toast = { id: string; type: 'success' | 'error'; message: string };
+
 export function Maintenance() {
   const [records, setRecords] = useState<MaintenanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (type: 'success' | 'error', message: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   const fetchMaintenanceRecords = async () => {
     try {
@@ -130,7 +143,9 @@ export function Maintenance() {
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSuccess={fetchMaintenanceRecords}
+        onToast={addToast}
       />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }
