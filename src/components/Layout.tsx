@@ -1,21 +1,25 @@
 import React from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  Car, 
-  Wrench, 
-  Building2, 
+import {
+  Car,
+  Wrench,
+  Building2,
   LayoutDashboard,
   LogOut,
   Menu,
   X,
-  Sparkles
+  Sparkles,
+  User,
+  Users,
+  ChevronDown
 } from 'lucide-react';
 
 export function Layout() {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -27,6 +31,8 @@ export function Layout() {
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Garages', href: '/garages', icon: Building2 },
   ];
+
+  const isAdmin = profile?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -75,7 +81,47 @@ export function Layout() {
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 space-y-2">
+            <div className="relative">
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <User className="mr-3 h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">{profile?.full_name || 'User'}</div>
+                    <div className="text-xs text-gray-500 capitalize">{profile?.role}</div>
+                  </div>
+                </div>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-md transition"
+                  >
+                    Profile Settings
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/account-management"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-200"
+                    >
+                      <div className="flex items-center">
+                        <Users className="mr-2 h-4 w-4" />
+                        Account Management
+                      </div>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+
             <button
               onClick={signOut}
               className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-red-50 hover:text-red-700 transition-all duration-200 transform hover:scale-105"

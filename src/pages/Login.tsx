@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Wrench, Sparkles, Shield, Heart } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 export function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,6 +24,11 @@ export function Login() {
       return;
     }
 
+    if (!isLogin && !fullName.trim()) {
+      setError('Full name is required');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -31,19 +36,10 @@ export function Login() {
         await signIn(email, password);
         navigate(location.state?.from?.pathname || '/');
       } else {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        
-        if (signUpError) throw signUpError;
-        
-        // Sign in immediately after successful registration
-        await signIn(email, password);
+        await signUp(email, password, fullName);
         navigate(location.state?.from?.pathname || '/');
       }
     } catch (err) {
-      // Provide more specific error messages based on the error
       if (err?.message?.includes('Invalid login credentials')) {
         setError(isLogin ? 'Invalid email or password. Please check your credentials.' : 'Failed to create account. Please try again.');
       } else if (err?.message?.includes('Email not confirmed')) {
@@ -64,6 +60,7 @@ export function Login() {
     setError('');
     setPassword('');
     setPasswordConfirm('');
+    setFullName('');
   }
 
   return (
@@ -155,22 +152,39 @@ export function Login() {
               />
             </div>
             {!isLogin && (
-              <div>
-                <label htmlFor="password-confirm" className="sr-only">
-                  Confirm Password
-                </label>
-                <input
-                  id="password-confirm"
-                  name="password-confirm"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="appearance-none rounded-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-all duration-200 hover:shadow-md"
-                  placeholder="Confirm Password"
-                />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="full-name" className="sr-only">
+                    Full Name
+                  </label>
+                  <input
+                    id="full-name"
+                    name="full-name"
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="appearance-none rounded-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    placeholder="Full Name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password-confirm" className="sr-only">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="password-confirm"
+                    name="password-confirm"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    className="appearance-none rounded-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm transition-all duration-200 hover:shadow-md"
+                    placeholder="Confirm Password"
+                  />
+                </div>
+              </>
             )}
           </div>
 
