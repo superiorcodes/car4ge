@@ -14,6 +14,7 @@ import {
   Users,
   ChevronDown
 } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 export function Layout() {
   const { user, profile, signOut } = useAuth();
@@ -135,6 +136,9 @@ export function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-64">
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-end">
+          <NotificationBell />
+        </div>
         <main className="p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>

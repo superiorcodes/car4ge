@@ -3,6 +3,7 @@ import { X, Wrench, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
+import { notificationService } from '../lib/notificationService';
 import { format } from 'date-fns';
 
 type MaintenanceRecord = Database['public']['Tables']['maintenance_records']['Insert'];
@@ -65,11 +66,25 @@ export function MaintenanceForm({ isOpen, onClose, onSuccess, onToast }: Mainten
     setError(null);
 
     try {
-      const { error: submitError } = await supabase
+      const { data, error: submitError } = await supabase
         .from('maintenance_records')
-        .insert([formData]);
+        .insert([formData])
+        .select();
 
       if (submitError) throw submitError;
+
+      if (user && data && data.length > 0) {
+        const maintenanceId = data[0].id;
+        const selectedVehicle = vehicles.find(v => v.id === formData.vehicle_id);
+
+        await notificationService.createNotification(
+          user.id,
+          'maintenance_scheduled',
+          'New Service Scheduled',
+          `Service scheduled for ${selectedVehicle?.make} ${selectedVehicle?.model} on ${format(new Date(formData.service_date), 'MMM d, yyyy')}`,
+          maintenanceId
+        );
+      }
 
       onToast?.('success', 'Service record created successfully!');
       onSuccess();

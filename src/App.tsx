@@ -8,6 +8,7 @@ import { Garages } from './pages/Garages';
 import { Login } from './pages/Login';
 import ProfileSettings from './pages/ProfileSettings';
 import AccountManagement from './pages/AccountManagement';
+import { Notifications } from './pages/Notifications';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route path="vehicles" element={<Vehicles />} />
             <Route path="maintenance" element={<Maintenance />} />
             <Route path="garages" element={<Garages />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<ProfileSettings />} />
             <Route path="account-management" element={<AccountManagement />} />
           </Route>
