@@ -57,7 +57,7 @@ export function Layout() {
           <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 animate-pulse"></div>
             <Sparkles className="h-6 w-6 text-yellow-300 mr-2 animate-bounce" />
-            <h1 className="text-xl font-bold text-white relative z-10">Garage Manager</h1>
+            <h1 className="text-xl font-bold text-white relative z-10">CAR4GE</h1>
           </div>
 
           <nav className="flex-1 px-4 py-4 space-y-1">

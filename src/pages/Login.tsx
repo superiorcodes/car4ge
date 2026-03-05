@@ -84,7 +84,7 @@ export function Login() {
             <Heart className="h-5 w-5 text-red-500 animate-pulse" />
           </div>
           <p className="mt-2 text-lg text-gray-600">
-            {isLogin ? 'Sign in to Garage Manager' : 'Create your account'}
+            {isLogin ? 'Sign in to CAR4GE' : 'Create your account'}
           </p>
           <p className="mt-2 text-center text-sm text-gray-600">
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
