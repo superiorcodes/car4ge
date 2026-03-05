@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wrench, Calendar, Clock, Plus } from 'lucide-react';
+import { Wrench, Calendar, Clock, Plus, CheckCircle2, AlertCircle, HourglassIcon, XCircle, DollarSign } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { MaintenanceForm } from '../components/MaintenanceForm';
@@ -111,10 +111,10 @@ export function Maintenance() {
                         : 'bg-red-100 text-red-800'
                     }`}
                   >
-                    {record.status === 'completed' && '✅ '}
-                    {record.status === 'in_progress' && '🔧 '}
-                    {record.status === 'pending' && '⏳ '}
-                    {record.status === 'cancelled' && '❌ '}
+                    {record.status === 'completed' && <CheckCircle2 className="inline h-4 w-4 mr-1" />}
+                    {record.status === 'in_progress' && <Wrench className="inline h-4 w-4 mr-1" />}
+                    {record.status === 'pending' && <Clock className="inline h-4 w-4 mr-1" />}
+                    {record.status === 'cancelled' && <XCircle className="inline h-4 w-4 mr-1" />}
                     {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                   </span>
                 </div>
@@ -131,7 +131,8 @@ export function Maintenance() {
                   </p>
                 </div>
                 <div className="mt-2 flex items-center text-base font-bold text-indigo-600 sm:mt-0">
-                  💰 ${record.cost.toFixed(2)}
+                  <DollarSign className="h-5 w-5 mr-1" />
+                  {record.cost.toFixed(2)}
                 </div>
               </div>
             </li>
