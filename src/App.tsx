@@ -10,6 +10,7 @@ import { Landing } from './pages/Landing';
 import ProfileSettings from './pages/ProfileSettings';
 import AccountManagement from './pages/AccountManagement';
 import { Notifications } from './pages/Notifications';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function AppRoutes() {
@@ -35,6 +36,7 @@ function AppRoutes() {
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<ProfileSettings />} />
             <Route path="account-management" element={<AccountManagement />} />
+            <Route path="admin" element={<AdminDashboard />} />
           </Route>
           <Route path="/login" element={<Navigate to="/" replace />} />
         </>

@@ -12,7 +12,8 @@ import {
   Sparkles,
   User,
   Users,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
@@ -26,14 +27,20 @@ export function Layout() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const navigation = [
+  const isAdmin = profile?.role === 'admin';
+
+  const baseNavigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Vehicles', href: '/vehicles', icon: Car },
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Garages', href: '/garages', icon: Building2 },
   ];
 
-  const isAdmin = profile?.role === 'admin';
+  const adminNavigation = isAdmin 
+    ? [{ name: 'Admin Panel', href: '/admin', icon: Shield }]
+    : [];
+
+  const navigation = [...baseNavigation, ...adminNavigation];
 
   return (
     <div className="min-h-screen bg-gray-100">
