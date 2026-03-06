@@ -45,6 +45,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     const abortController = new AbortController();
+    let initialized = false;
+
+    const handleAuthStateChange = async (newSession: Session | null) => {
+      if (!isMounted || abortController.signal.aborted) return;
+
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+
+      if (newSession?.user) {
+        try {
+          const profileData = await fetchProfile(newSession.user.id);
+          if (isMounted && !abortController.signal.aborted) {
+            setProfile(profileData);
+          }
+        } catch (err) {
+          console.warn('Profile fetch error:', err);
+        }
+      } else {
+        if (isMounted) {
+          setProfile(null);
+        }
+      }
+
+      if (!initialized) {
+        initialized = true;
+        if (isMounted && !abortController.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
 
     const initializeAuth = async () => {
       try {
@@ -56,29 +86,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.warn('Session fetch error:', error);
+          initialized = true;
           setLoading(false);
           return;
         }
 
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
-          if (isMounted && !abortController.signal.aborted) {
-            setProfile(profileData);
-          }
-        }
-
-        if (isMounted && !abortController.signal.aborted) {
-          setLoading(false);
-        }
+        await handleAuthStateChange(session);
       } catch (err) {
-        if (!abortController.signal.aborted) {
-          console.warn('Auth initialization error:', err);
-          if (isMounted) {
-            setLoading(false);
-          }
+        console.warn('Auth initialization error:', err);
+        if (isMounted) {
+          initialized = true;
+          setLoading(false);
         }
       }
     };
@@ -86,32 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        if (!isMounted || abortController.signal.aborted) return;
-
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-
-        if (newSession?.user) {
-          (async () => {
-            try {
-              const profileData = await fetchProfile(newSession.user.id);
-              if (isMounted && !abortController.signal.aborted) {
-                setProfile(profileData);
-              }
-            } catch (err) {
-              console.warn('Profile fetch error in auth listener:', err);
-            }
-          })();
-        } else if (!newSession?.user) {
-          if (isMounted) {
-            setProfile(null);
-          }
-        }
-
-        if (isMounted && !abortController.signal.aborted) {
-          setLoading(false);
-        }
+      async (_event, newSession) => {
+        await handleAuthStateChange(newSession);
       }
     );
 
