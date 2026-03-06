@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -45,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     const abortController = new AbortController();
-    let initialized = false;
 
     const handleAuthStateChange = async (newSession: Session | null) => {
       if (!isMounted || abortController.signal.aborted) return;
@@ -67,13 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
       }
-
-      if (!initialized) {
-        initialized = true;
-        if (isMounted && !abortController.signal.aborted) {
-          setLoading(false);
-        }
-      }
     };
 
     const initializeAuth = async () => {
@@ -86,17 +79,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.warn('Session fetch error:', error);
-          initialized = true;
           setLoading(false);
+          setInitialized(true);
           return;
         }
 
         await handleAuthStateChange(session);
+        if (isMounted && !abortController.signal.aborted) {
+          setLoading(false);
+          setInitialized(true);
+        }
       } catch (err) {
         console.warn('Auth initialization error:', err);
         if (isMounted) {
-          initialized = true;
           setLoading(false);
+          setInitialized(true);
         }
       }
     };
@@ -105,7 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
-        await handleAuthStateChange(newSession);
+        if (initialized) {
+          await handleAuthStateChange(newSession);
+        }
       }
     );
 
@@ -114,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       abortController.abort();
       subscription.unsubscribe();
     };
-  }, []);
+  }, [initialized]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
