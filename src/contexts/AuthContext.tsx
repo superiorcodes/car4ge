@@ -25,41 +25,95 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+      if (error) {
+        console.warn('Profile fetch error:', error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Profile fetch exception:', err);
+      return null;
+    }
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
-        setProfile(profileData);
-      }
-      setLoading(false);
-    });
+    let isMounted = true;
+    let profileFetchInProgress = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        (async () => {
-          setSession(session);
-          setUser(session?.user ?? null);
-          if (session?.user) {
-            const profileData = await fetchProfile(session.user.id);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        if (error) {
+          console.warn('Session fetch error:', error);
+          setLoading(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user && !profileFetchInProgress) {
+          profileFetchInProgress = true;
+          const profileData = await fetchProfile(session.user.id);
+          if (isMounted) {
             setProfile(profileData);
           }
+          profileFetchInProgress = false;
+        }
+
+        if (isMounted) {
           setLoading(false);
-        })();
+        }
+      } catch (err) {
+        console.warn('Auth initialization error:', err);
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, newSession) => {
+        if (!isMounted) return;
+
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user && !profileFetchInProgress) {
+          profileFetchInProgress = true;
+          try {
+            const profileData = await fetchProfile(newSession.user.id);
+            if (isMounted) {
+              setProfile(profileData);
+            }
+          } finally {
+            profileFetchInProgress = false;
+          }
+        } else if (!newSession?.user) {
+          setProfile(null);
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
