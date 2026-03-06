@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
@@ -115,63 +115,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [initialized]);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  };
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    },
+    []
+  );
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+  const signUp = useCallback(
+    async (email: string, password: string, fullName: string) => {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-        role: 'user',
-      });
-      if (profileError) throw profileError;
-    }
-  };
+      if (data.user) {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: data.user.id,
+          email,
+          full_name: fullName,
+          role: 'user',
+        });
+        if (profileError) throw profileError;
+      }
+    },
+    []
+  );
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  };
+  const signOut = useCallback(
+    async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    },
+    []
+  );
 
-  const updateProfile = async (data: Partial<Profile>) => {
-    if (!user) throw new Error('No user logged in');
-    const { error } = await supabase
-      .from('profiles')
-      .update(data)
-      .eq('id', user.id);
-    if (error) throw error;
-    const updatedProfile = await fetchProfile(user.id);
-    setProfile(updatedProfile);
-  };
+  const updateProfile = useCallback(
+    async (data: Partial<Profile>) => {
+      if (!user) throw new Error('No user logged in');
+      const { error } = await supabase
+        .from('profiles')
+        .update(data)
+        .eq('id', user.id);
+      if (error) throw error;
+      const updatedProfile = await fetchProfile(user.id);
+      setProfile(updatedProfile);
+    },
+    [user]
+  );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
+  const contextValue = React.useMemo(
+    () => ({
+      user,
+      session,
+      profile,
+      isLoading: loading,
+      signIn,
+      signOut,
+      signUp,
+      updateProfile,
+    }),
+    [user, session, profile, loading, signIn, signOut, signUp, updateProfile]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        isLoading: loading,
-        signIn,
-        signOut,
-        signUp,
-        updateProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
